@@ -267,6 +267,10 @@
         return slotTile(c.slot, { name: c.name, icon: c.icon, fill: c.key ? 'var(--primary)' : 'var(--cloth)' }, c.key, c.band != null ? R.BANDS[c.band].t : '', c.empty);
       }).join('') + '</div>';
     };
+    var verdictText = R.summary(C.w, C.j, mode === 'mine' && outfit && !outfit.miss ? outfit : null, cards);
+    S.verdict = verdictText;
+    var verdict = '<div class="verdict"><p class="verdict-t">' + esc(verdictText) + '</p>' +
+      '<button type="button" class="btn btn-ghost btn-s verdict-share" data-act="share" data-fk="share">' + I.ui('share', 16) + '공유</button></div>';
     if (mode === 'mine' && outfit && !outfit.miss) {
       var L = [];
       if (C.j.needOuter) L.push(outfit.outer ? ['겉옷', outfit.outer] : ['겉옷', null]);
@@ -278,7 +282,6 @@
         if (!x) return slotTile(p[0], { name: '맞는 겉옷 없음', icon: 'none' }, false, R.BANDS[C.j.outer].t, true);
         return slotTile(p[0], { name: R.itemLabel(x), icon: iconOf(x), fill: colorHex(x.color) }, p[0] === '겉옷' && i === 0, R.rangeText(R.itemRange(x)), false);
       }).join('') + '</div>' +
-        '<p class="combo">' + esc([outfit.outer, outfit.top, outfit.bottom, outfit.shoe].filter(Boolean).map(R.itemLabel).join(' + ')) + '</p>' +
         (outfit.color ? '<p class="body2 c2 row g6">' + I.ui('palette', 16) + '<span>' + esc(outfit.color) + '</span></p>' : '');
       foot = '<div class="card-foot"><span class="caption c3">내 옷 ' + S.closet.length + '벌 중에서 골랐어요</span>' +
         (outfit.options > 1 ? '<button type="button" class="btn btn-secondary btn-s" data-act="shuffle" data-fk="shuffle">' + I.ui('shuffle', 16) + '다른 조합</button>' : '') + '</div>';
@@ -289,12 +292,29 @@
       body = basicTiles();
       var gseg = '<div class="seg seg-s" role="radiogroup" aria-label="옷차림 표">' + [['u', '공용'], ['f', '여성']].map(function (g) { return '<button type="button" role="radio" data-act="g" data-v="' + g[0] + '" data-fk="g-' + g[0] + '" aria-checked="' + (S.g === g[0]) + '">' + g[1] + '</button>'; }).join('') + '</div>';
       foot = mineOk ? '<div class="card-foot"><span class="caption c3">기온별 옷차림 기준</span>' + gseg + '</div>' :
-        '<div class="cta"><div class="minw0"><p class="cta-t">내 옷을 등록하면, 내 옷으로 골라 드려요</p><p class="caption c2">종류·색·두께만 고르면 돼요. 사진·로그인 없이 이 브라우저에만 저장돼요.</p></div>' +
-        '<div class="row g8 wrapr"><button type="button" class="btn btn-primary" data-act="add" data-fk="add-cta">' + I.ui('plus', 18) + '내 옷 등록</button><button type="button" class="btn btn-secondary" data-act="sample" data-fk="sample">예시 옷장으로 체험</button></div></div>' +
+        '<div class="cta"><div class="minw0"><p class="cta-t">내 옷장이 있으면 이렇게 골라요</p>' + samplePreview(C) + '</div>' +
+        '<div class="row g8 wrapr"><button type="button" class="btn btn-primary" data-act="sample" data-fk="sample">예시 옷장으로 체험</button><button type="button" class="btn btn-secondary" data-act="go-closet" data-fk="add-cta">' + I.ui('plus', 18) + '내 옷 담기</button></div>' +
+        '<p class="caption c2">자주 입는 옷을 눌러서 담아요. 사진·로그인 없이 이 브라우저에만 저장돼요.</p></div>' +
         '<div class="card-foot"><span class="caption c3">기온별 옷차림 기준</span>' + gseg + '</div>';
     }
     return '<section class="card outfit o3" aria-labelledby="of-t"><div class="card-h"><h2 id="of-t" class="title3">' + dl + '의 옷차림 <span class="c3 num title-sub">' + hh(C.w.start) + '~' + hh(C.w.end) + '</span></h2>' + seg + '</div>' +
-      body + foot + '</section>';
+      verdict + body + foot + '</section>';
+  }
+
+  /* 예시 옷장: 미리 보기와 실제로 담는 옷이 같은 id라야 같은 코디가 나와요 */
+  function sampleSet() {
+    if (!S.sampleSet) S.sampleSet = R.SAMPLE.map(function (x) { return Object.assign({ id: uid(), thick: '보통' }, x); });
+    return S.sampleSet;
+  }
+
+  /* 옷장이 비었을 때: 예시 옷장이라면 무엇을 고르는지 미리 보여 줌 (누르기 전에 차별점이 보이게) */
+  function samplePreview(C) {
+    var sample = sampleSet();
+    var o = R.closetOutfit(sample, C.j, Math.floor(Date.parse(C.date) / 864e5));
+    if (!o || o.miss) return '<p class="caption c2">종류·색·두께만 고르면 내 옷으로 코디해 드려요.</p>';
+    var L = [o.outer, o.top, o.bottom, o.shoe].filter(Boolean);
+    return '<div class="sp"><div class="sp-ic" aria-hidden="true">' + L.map(function (x) { return I.cloth(iconOf(x), colorHex(x.color)); }).join('') + '</div>' +
+      '<p class="sp-t"><span class="c2">예시 옷장 18벌이라면</span> ' + esc(L.map(R.itemLabel).join(' + ')) + '</p></div>';
   }
 
   /* PC 왼쪽 빈 곳: 어떻게 고르는지 3줄 (폰에서는 아래 8단계 표의 규칙으로 대신) */
@@ -484,6 +504,18 @@
 
   /* ---------- 알림 ---------- */
   var toastTimer;
+  function shareToday() {
+    var C = calc(S.day); if (!C) return;
+    var name = S.city.id === 'here' ? '내 위치' : S.city.name;
+    var text = '[옷장 예보] ' + name + ' ' + ['오늘', '내일', '모레'][S.day] + ' ' + hh(C.w.start) + '~' + hh(C.w.end) + ' 체감 ' +
+      (r0(C.w.feelMin) === r0(C.w.feelMax) ? r0(C.w.feelMax) : r0(C.w.feelMin) + '~' + r0(C.w.feelMax)) + '℃\n' + (S.verdict || '');
+    var url = 'https://weather-closet-one.vercel.app/';
+    if (navigator.share) { navigator.share({ title: '옷장 예보', text: text, url: url }).catch(function () {}); return; }
+    var all = text + '\n' + url;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(all).then(function () { toast('옷차림을 복사했어요. 붙여 넣어 보내 보세요'); }, function () { toast('복사하지 못했어요'); });
+    else toast('이 브라우저는 공유를 지원하지 않아요');
+  }
+
   function toast(msg, undo) {
     S.toast = msg; S.undo = undo || null; renderToast();
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { S.toast = null; S.undo = null; renderToast(); }, undo ? 6000 : 3000);
@@ -510,8 +542,9 @@
     if (a === 'mode') { S.mode = v; render(); return; }
     if (a === 'g') { S.g = v; store.set('g', v); render(); return; }
     if (a === 'shuffle') { S.shift++; render(); return; }
+    if (a === 'share') { shareToday(); return; }
     if (a === 'sample') {
-      var add = R.SAMPLE.map(function (x) { return Object.assign({ id: uid(), thick: '보통' }, x); });
+      var add = sampleSet(); S.sampleSet = null;
       S.closet = S.closet.concat(add); saveCloset(); S.mode = 'mine';
       toast('예시 옷 ' + add.length + '벌을 담았어요. 내 옷장에서 고치거나 뺄 수 있어요'); S.view = 'home'; render(); return;
     }
