@@ -145,7 +145,24 @@
     var ae = document.activeElement, fk = ae && ae.getAttribute && ae.getAttribute('data-fk');
     app.innerHTML = S.view === 'closet' ? viewCloset() : viewHome();
     if (fk) { var el = app.querySelector('[data-fk="' + fk + '"]'); if (el) el.focus({ preventScroll: true }); }
+    afterPaint();
     renderToast();
+  }
+
+  /* 그린 뒤: 옆으로 넘기는 칸엔 끝 흐림 단서, 추천이 바뀌었을 때만 옷 카드를 살짝 띄움 */
+  var lastSig = '';
+  function afterPaint() {
+    var h = app.querySelector('.hours');
+    if (h) {
+      var wrap = h.parentNode, upd = function () { wrap.classList.toggle('more-r', h.scrollLeft + h.clientWidth < h.scrollWidth - 4); wrap.classList.toggle('more-l', h.scrollLeft > 4); };
+      upd(); h.addEventListener('scroll', upd, { passive: true });
+    }
+    var tiles = app.querySelector('.outfit [class^="tiles"]');
+    if (tiles) {
+      var sig = tiles.textContent;
+      if (lastSig && sig !== lastSig) tiles.classList.add('pop');
+      lastSig = sig;
+    }
   }
 
   function topBar() {
@@ -192,17 +209,25 @@
   }
 
   function heroCard() {
-    var d = S.wx.data, c = d.current, k = R.codeKind(c.weather_code);
-    var hum = c.relative_humidity_2m != null ? ' · 습도 ' + Math.round(c.relative_humidity_2m) + '%' : '';
-    var stale = S.wxState === 'stale' ? '<p class="caption warn-t">' + I.ui('alert', 14) + ' 최신 날씨를 못 가져와 ' + Math.max(1, Math.round((Date.now() - S.wx.at) / 6e4)) + '분 전 날씨를 보여 드려요 <button type="button" class="link" data-act="retry">다시</button></p>' : '';
+    var d = S.wx.data, c = d.current, k = R.codeKind(c.weather_code), night = c.is_day === 0;
+    var t = today(), di = t ? t.base : 0;
+    var stale = S.wxState === 'stale' ? '<p class="hero-warn">' + I.ui('alert', 14) + ' 최신 날씨를 못 가져와 ' + Math.max(1, Math.round((Date.now() - S.wx.at) / 6e4)) + '분 전 날씨예요</p>' : '';
     var name = S.city.id === 'here' ? '내 위치' : S.city.name;
-    return '<section class="card hero o1" aria-labelledby="hero-t">' +
-      '<div class="hero-top">' + I.sky(k, c.is_day === 0) +
-      '<div class="minw0"><h1 id="hero-t" class="hero-t"><span>' + esc(name) + '</span> · <span class="num">' + r0(c.temperature_2m) + '℃</span> · <span>' + esc(R.codeText(c.weather_code)) + '</span></h1>' +
-      '<p class="hero-s">지금 · 체감 <span class="num">' + r0(c.apparent_temperature) + '℃</span> · ' + esc(R.windText(c.wind_speed_10m)) + hum + '</p>' +
-      (S.city.id === 'here' && S.city.near ? '<p class="caption c3">' + esc(S.city.near) + ' 근처 · 위치는 이 브라우저에만 저장돼요</p>' : '') +
-      '</div></div>' + stale +
-      '</section>';
+    var at = new Date(S.wx.at + 9 * 36e5), ah = at.getUTCHours(), am = at.getUTCMinutes();
+    var upd = S.mock ? '모의 데이터' : (ah < 12 ? '오전 ' : '오후 ') + ((ah % 12) || 12) + ':' + (am < 10 ? '0' : '') + am + ' 기준';
+    var chips = [
+      ['최고', r0(d.daily.temperature_2m_max[di]) + '°'], ['최저', r0(d.daily.temperature_2m_min[di]) + '°'],
+      ['습도', c.relative_humidity_2m != null ? Math.round(c.relative_humidity_2m) + '%' : '-'],
+      ['바람', c.wind_speed_10m != null ? c.wind_speed_10m.toFixed(1) + 'm/s' : '-']
+    ];
+    return '<section class="hero sky-' + (night ? 'night' : k) + '" aria-labelledby="hero-t">' +
+      '<div class="hero-row"><p class="hero-place">' + I.ui('pin', 16) + esc(name) + (S.city.id === 'here' && S.city.near ? ' <span class="hero-near">' + esc(S.city.near) + ' 근처</span>' : '') + '</p>' +
+      '<button type="button" class="hero-refresh' + (S.wxState === 'loading' ? ' spin' : '') + '" data-act="retry" data-fk="refresh" aria-label="날씨 새로 고침, ' + upd + '">' + I.ui('refresh', 15) + '<span class="num">' + upd + '</span></button></div>' +
+      '<div class="hero-main"><h1 id="hero-t" class="hero-t"><span class="sr-only">' + esc(name) + ' · </span><span class="hero-temp num">' + r0(c.temperature_2m) + '°</span><span class="sr-only"> · </span>' +
+      '<span class="hero-cond">' + esc(R.codeText(c.weather_code)) + '<span class="hero-feel">체감 <span class="num">' + r0(c.apparent_temperature) + '°</span></span></span></h1>' +
+      I.sky(k, night) + '</div>' +
+      '<ul class="hero-chips">' + chips.map(function (x) { return '<li><span>' + x[0] + '</span><b class="num">' + x[1] + '</b></li>'; }).join('') + '</ul>' +
+      stale + '</section>';
   }
 
   function planCard(C) {
@@ -312,14 +337,17 @@
     var lo = Math.min.apply(null, H.map(function (x) { return x.feel; })), hi = Math.max.apply(null, H.map(function (x) { return x.feel; }));
     var span = Math.max(4, hi - lo);
     return '<section class="card o5" aria-labelledby="hr-t"><div class="card-h"><h2 id="hr-t" class="title3">시간별 체감기온</h2><span class="caption c3">밖에 있는 ' + H.length + '시간</span></div>' +
-      '<div class="hours" role="list">' + H.map(function (x) {
-        var hgt = 18 + Math.round((x.feel - lo) / span * 52);
+      '<div class="hours-wrap"><div class="hours" role="list" tabindex="0" aria-label="시간별 체감기온, 옆으로 넘겨 보기">' + H.map(function (x) {
+        var hgt = 14 + Math.round((x.feel - lo) / span * 48);
         var mark = x.h === C.w.coldHour && lo !== hi ? 'cold' : x.h === C.w.hotHour && lo !== hi ? 'hot' : '';
-        return '<div class="hr ' + mark + '" role="listitem" aria-label="' + R.hourText(x.h) + ' 체감 ' + Math.round(x.feel) + '도' + (x.rain >= 20 ? ', 비 ' + x.rain + '%' : '') + '">' +
+        var tag = mark === 'cold' ? '최저' : mark === 'hot' ? '최고' : '';
+        return '<div class="hr ' + mark + '" role="listitem" aria-label="' + R.hourText(x.h) + ' 체감 ' + Math.round(x.feel) + '도, ' + R.codeText(x.code) + (x.rain >= 20 ? ', 비 ' + x.rain + '%' : '') + (tag ? ', 가장 ' + (mark === 'cold' ? '추울' : '따뜻할') + ' 때' : '') + '">' +
+          '<span class="hr-tag">' + tag + '</span>' +
           '<span class="hr-v num">' + Math.round(x.feel) + '°</span><span class="hr-bar" style="height:' + hgt + 'px"></span>' +
+          I.sky(R.codeKind(x.code), x.h < 6 || x.h >= 19) +
           '<span class="hr-r num">' + (x.rain >= 20 ? x.rain + '%' : '') + '</span><span class="hr-h num">' + x.h + '시</span></div>';
-      }).join('') + '</div>' +
-      '<p class="caption c3 legend"><span class="lg cold"></span>가장 추울 때 <span class="lg hot"></span>가장 따뜻할 때 <span class="lg rain"></span>비 올 확률(%)</p></section>';
+      }).join('') + '</div></div>' +
+      '<p class="caption c3">막대는 체감기온, 파란 숫자는 비 올 확률이에요.</p></section>';
   }
 
   function gapCard() {
@@ -546,6 +574,14 @@
     }
   }
 
+  /* 시트: 손잡이·제목 줄을 아래로 끌면 닫힘 */
+  function dragClose(d) {
+    var y0 = null, dy = 0, zone = d.querySelector('.sheet-top');
+    zone.addEventListener('touchstart', function (e) { y0 = e.touches[0].clientY; dy = 0; d.classList.add('dragging'); }, { passive: true });
+    zone.addEventListener('touchmove', function (e) { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); d.style.transform = 'translateY(' + dy + 'px)'; }, { passive: true });
+    zone.addEventListener('touchend', function () { d.classList.remove('dragging'); d.style.transform = ''; if (dy > 90) closeSheet(d); y0 = null; });
+  }
+
   function init() {
     app = document.getElementById('app');
     citySheet = document.getElementById('city-sheet');
@@ -556,6 +592,7 @@
     [citySheet, itemSheet].forEach(function (d) {
       d.addEventListener('click', function (e) { if (e.target === d) closeSheet(d); });
     });
+    dragClose(citySheet); dragClose(itemSheet);
     itemSheet.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); saveItem(); });
     loadWx(false);
     /* 오래 열어 둔 화면은 돌아왔을 때 새로 */

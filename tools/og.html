@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../css/style.css">
+<style>
+body{margin:0;width:1200px;height:630px;background:linear-gradient(140deg,#1d4ea6,#3a78d4);font-family:"Pretendard Variable",Pretendard,"WenQuanYi Zen Hei",sans-serif;color:#fff;display:flex;align-items:center;gap:56px;padding:0 72px;box-sizing:border-box;overflow:hidden}
+.l{flex:1;display:grid;gap:22px}.brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:800;color:#fff}
+h1{font-size:50px;line-height:1.25;margin:0;font-weight:800;letter-spacing:-.03em}p{margin:0;font-size:26px;opacity:.9;line-height:1.45}
+.card{width:420px;flex-shrink:0;background:#fff;color:#17181c;border-radius:28px;padding:28px;display:grid;gap:18px;box-shadow:0 30px 60px -20px rgba(0,0,0,.4)}
+.t{display:flex;gap:14px}.tile{flex:1;border:2px solid #e3e5e9;border-radius:18px;padding:14px 6px;display:grid;justify-items:center;gap:4px;font-weight:700;font-size:16px;white-space:nowrap}
+.tile.k{border-color:#2f5fd0;background:#e9effc}.tile svg{width:72px;height:72px}.s{font-size:14px;color:#6b717c;font-weight:600}
+.w{font-size:22px;font-weight:800}.how{font-size:17px;color:#4b505a;line-height:1.5}
+</style></head><body>
+<div class="l"><div class="brand" id="b"></div><h1>밖에 있는 시간의 체감기온으로<br>내 옷장에서 골라 입어요</h1><p>낮 옷은 가장 따뜻할 때, 겉옷은 가장 추울 때 기준<br>로그인 없이 바로 써요</p></div>
+<div class="card"><div class="w">내일 08~20시 · 체감 0~5°</div><div class="t" id="t"></div><div class="how">아침·저녁엔 코트를 여미고, 낮엔 앞을 열어 입어요</div></div>
+<script src="../js/icons.js"></script><script>
+document.getElementById('b').innerHTML=Icons.cloth('coat','#fff','x').replace('class="x"','width="44" height="44"')+'옷장 예보';
+var L=[['coat','#4a4a50','겉옷','차콜 울 코트',1],['knit','#6e2232','상의','버건디 니트'],['pants','#1d1d1f','하의','블랙 슬랙스']];
+document.getElementById('t').innerHTML=L.map(function(x){return '<div class="tile'+(x[4]?' k':'')+'">'+Icons.cloth(x[0],x[1])+'<span class="s">'+x[2]+'</span>'+x[3]+'</div>'}).join('');
+</script></body></html>

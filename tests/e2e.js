@@ -33,7 +33,7 @@ const srv = http.createServer((q, r) => {
   const m = { width: 390, height: 844 }, d = { width: 1280, height: 860 };
 
   let p = await page(m); await shot(p, 'm1-home');
-  await p.click('[data-act="sample"]'); await p.waitForSelector('.combo'); await shot(p, 'm2-mine');
+  await p.click('[data-act="sample"]'); await p.waitForSelector('.combo'); await p.waitForTimeout(400); await shot(p, 'm2-mine');
   await p.click('[data-act="day"][data-v="2"]'); await shot(p, 'm3-mine-day2');
   await p.click('[data-act="go-closet"]'); await shot(p, 'm4-closet');
   await p.click('[data-act="add"]'); await p.click('[data-act="i-sub"][data-v="니트"]'); await p.click('[data-act="i-color"][data-v="버건디"]'); await p.click('[data-act="i-thick"][data-v="두꺼움"]');
@@ -44,7 +44,7 @@ const srv = http.createServer((q, r) => {
   await p.click('[data-act="home"]'); await p.click('[data-act="open-city"]'); await shot(p, 'm6-city', false);
   await p.close();
 
-  p = await page(d); await p.click('[data-act="sample"]'); await p.waitForSelector('.combo'); await shot(p, 'd1-mine', false);
+  p = await page(d); await p.click('[data-act="sample"]'); await p.waitForSelector('.combo'); await p.waitForTimeout(400); await shot(p, 'd1-mine', false);
   await p.click('[data-act="mode"][data-v="basic"]'); await shot(p, 'd2-basic', false); await p.close();
   p = await page(m, { dark: true }); await shot(p, 'm7-dark'); await p.close();
   p = await page(m, { fail: true }); await shot(p, 'm8-fail', false);
