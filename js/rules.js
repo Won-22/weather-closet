@@ -352,6 +352,25 @@
     return L;
   }
 
+  /* 첫 화면 한 줄 답: 무엇을 입고 무엇을 챙길지 */
+  function summary(w, j, outfit, cards) {
+    var top = outfit ? itemLabel(outfit.top) : cards[0].name;
+    var main;
+    if (j.needOuter) {
+      var outer = outfit ? (outfit.outer ? itemLabel(outfit.outer) : '') : cards[2].name;
+      main = outer ? top + '에 ' + josa(outer, '을', '를') + ' 걸쳐요'
+        : '맞는 겉옷이 옷장에 없어요. ' + BANDS[j.outer].wear.split(' · ').slice(0, 2).join('·') + ' 같은 겉옷이 필요해요';
+    } else if (j.inner <= 1) main = top + ' 한 벌이면 충분해요';
+    else main = '겉옷 없이 ' + josa(top, '이면', '면') + ' 돼요';
+    var extra = [];
+    if (j.snow) extra.push('눈 소식, 미끄럽지 않은 신발을 신어요');
+    else if (j.wet) extra.push(hourText(w.rainPeak) + ' 비 소식, 우산도 챙겨요');
+    else if (j.maybeRain) extra.push(hourText(w.rainPeak) + ' 비 ' + w.rainMax + '%, 작은 우산이 있으면 좋아요');
+    if (j.freezing) extra.push('목도리·장갑도 챙겨요');
+    else if (j.uv) extra.push('모자·선글라스도 챙겨요');
+    return [main].concat(extra).join('. ') + '.';
+  }
+
   /* ---------- 옷장 빈 곳: 앞으로 며칠 날씨에 입을 옷이 비었는지 ---------- */
   function closetGaps(closet, days) {
     var out = [];
@@ -402,7 +421,7 @@
     bandOf: bandOf, rangeText: rangeText, itemRange: itemRange, dist: dist,
     codeText: codeText, josa: josa, codeKind: codeKind, windText: windText, hourText: hourText, itemLabel: itemLabel,
     windowStats: windowStats, judge: judge, genericCards: genericCards,
-    closetOutfit: closetOutfit, colorNote: colorNote, howTo: howTo, closetGaps: closetGaps
+    closetOutfit: closetOutfit, colorNote: colorNote, howTo: howTo, summary: summary, closetGaps: closetGaps
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Rules = api;

@@ -146,3 +146,22 @@ test('조사 붙이기', () => {
   assert.equal(R.josa('트렌치·야상', '을', '를'), '트렌치·야상을');
   assert.equal(R.josa('패딩·두꺼운 코트', '을', '를'), '패딩·두꺼운 코트를');
 });
+
+test('한 줄 답: 겉옷·비를 한 문장으로', () => {
+  const w = R.windowStats(data, 1, 8, 20);
+  const j = R.judge(w);
+  const s = R.summary(w, j, null, R.genericCards(j, 'u'));
+  assert.match(s, /패딩·두꺼운 코트를 걸쳐요/);
+  assert.match(s, /오후 6시 비 59%/);
+  const hot = R.judge({ feelMax: 30, feelMin: 26, tempMax: 30, tempMin: 26, windMax: 1, rainMax: 0, kind: 'sun' });
+  assert.match(R.summary({ rainMax: 0 }, hot, null, R.genericCards(hot, 'u')), /한 벌이면 충분해요/);
+  const mid = R.judge({ feelMax: 26, feelMin: 23, tempMax: 26, tempMin: 23, windMax: 2, rainMax: 80, rainPeak: 15, kind: 'rain' });
+  assert.match(R.summary({ rainMax: 80, rainPeak: 15 }, mid, null, R.genericCards(mid, 'u')), /오후 3시 비 소식, 우산도 챙겨요/);
+});
+
+test('한 줄 답: 내 옷장에 겉옷이 없으면 그렇게 말한다', () => {
+  const w = R.windowStats(data, 1, 8, 20);
+  const j = R.judge(w);
+  const o = R.closetOutfit([{ id: 't', sub: '니트', color: '아이보리' }, { id: 'b', sub: '슬랙스', color: '블랙' }], j, 0);
+  assert.match(R.summary(w, j, o, null), /맞는 겉옷이 옷장에 없어요/);
+});
