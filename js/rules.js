@@ -30,7 +30,7 @@
     var hot = BANDS[r[0]], cold = BANDS[r[1]];
     var hi = r[0] === 0 ? null : BANDS[r[0] - 1].lo - 1;
     var lo = cold.lo === -99 ? null : cold.lo;
-    if (hi == null && lo == null) return '언제나';
+    if (hi == null && lo == null) return '사계절';
     if (hi == null) return lo + '℃ 이상';
     if (lo == null) return hi + '℃ 이하';
     return lo + '~' + hi + '℃';
@@ -280,7 +280,9 @@
         var ol = outers.list.length ? outers.list : [null];
         ol.forEach(function (o) {
           var items = [o && o.x, t.x, b && b.x].filter(Boolean);
-          var score = colorScore(items, j.wet) + (t.d + (b ? b.d : 0) + (o ? o.d : 0)) * 3;
+          var fitC = function (q, band) { if (!q) return 0; var r = itemRange(q.x); return Math.abs((r[0] + r[1]) / 2 - band); };
+          /* 단계 안에서도 범위 가운데에 가까운 옷을 먼저 (12℃에 반팔 겸용 셔츠보다 니트) */
+          var score = colorScore(items, j.wet) + (t.d + (b ? b.d : 0) + (o ? o.d : 0)) * 3 + (fitC(t, j.inner) + fitC(b, j.inner) + fitC(o, j.outer)) * 0.6;
           combos.push({ outer: o && o.x, top: t.x, bottom: b && b.x, score: score, near: [t, b, o].some(function (q) { return q && q.d > 0; }) });
         });
       });
@@ -330,7 +332,7 @@
     var outerName = outfit ? (outfit.outer ? itemLabel(outfit.outer) : '') : (j.needOuter ? cards[2].name : '');
     if (j.needOuter && outerName) {
       if (j.inner <= 2 && j.inner < j.outer) L.push({ k: 'layer', t: hourText(w.coldHour) + '쯤 체감 ' + Math.round(w.feelMin) + '℃엔 ' + josa(outerName, '을', '를') + ' 입고, ' + hourText(w.hotHour) + '쯤 ' + Math.round(w.feelMax) + '℃엔 벗어서 들어요' });
-      else if (j.inner < j.outer) L.push({ k: 'layer', t: '아침·저녁(체감 ' + Math.round(w.feelMin) + '℃)이 낮(' + Math.round(w.feelMax) + '℃)보다 추워요. ' + josa(outerName, '은', '는') + ' 앞을 여닫기 쉬운 걸로 골라요' });
+      else if (j.inner < j.outer) L.push({ k: 'layer', t: '아침·저녁(체감 ' + Math.round(w.feelMin) + '℃)이 낮(' + Math.round(w.feelMax) + '℃)보다 추워요. ' + (outfit ? josa(outerName, '은', '는') + ' 아침·저녁엔 여미고, 낮엔 앞을 열어 입어요' : josa(outerName, '은', '는') + ' 앞을 여닫기 쉬운 걸로 골라요') });
       else L.push({ k: 'layer', t: '하루 종일 체감 ' + Math.round(w.feelMin) + '~' + Math.round(w.feelMax) + '℃라 ' + josa(outerName, '을', '를') + ' 계속 입어요' });
     }
     if (j.gap >= 8) L.push({ k: 'gap', t: '일교차 ' + j.gap + '℃ — 얇은 옷을 겹쳐 입으면 더울 때 하나씩 벗기 쉬워요' });
