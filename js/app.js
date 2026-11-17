@@ -210,23 +210,16 @@
 
   function heroCard() {
     var d = S.wx.data, c = d.current, k = R.codeKind(c.weather_code), night = c.is_day === 0;
-    var t = today(), di = t ? t.base : 0;
-    var stale = S.wxState === 'stale' ? '<p class="hero-warn">' + I.ui('alert', 14) + ' 최신 날씨를 못 가져와 ' + Math.max(1, Math.round((Date.now() - S.wx.at) / 6e4)) + '분 전 날씨예요</p>' : '';
+        var stale = S.wxState === 'stale' ? '<p class="hero-warn">' + I.ui('alert', 14) + ' 최신 날씨를 못 가져와 ' + Math.max(1, Math.round((Date.now() - S.wx.at) / 6e4)) + '분 전 날씨예요</p>' : '';
     var name = S.city.id === 'here' ? '내 위치' : S.city.name;
     var at = new Date(S.wx.at + 9 * 36e5), ah = at.getUTCHours(), am = at.getUTCMinutes();
     var upd = S.mock ? '모의 데이터' : (ah < 12 ? '오전 ' : '오후 ') + ((ah % 12) || 12) + ':' + (am < 10 ? '0' : '') + am + ' 기준';
-    var chips = [
-      ['최고', r0(d.daily.temperature_2m_max[di]) + '°'], ['최저', r0(d.daily.temperature_2m_min[di]) + '°'],
-      ['습도', c.relative_humidity_2m != null ? Math.round(c.relative_humidity_2m) + '%' : '-'],
-      ['바람', c.wind_speed_10m != null ? c.wind_speed_10m.toFixed(1) + 'm/s' : '-']
-    ];
     return '<section class="hero sky-' + (night ? 'night' : k) + '" aria-labelledby="hero-t">' +
       '<div class="hero-row"><p class="hero-place">' + I.ui('pin', 16) + esc(name) + (S.city.id === 'here' && S.city.near ? ' <span class="hero-near">' + esc(S.city.near) + ' 근처</span>' : '') + '</p>' +
       '<button type="button" class="hero-refresh' + (S.wxState === 'loading' ? ' spin' : '') + '" data-act="retry" data-fk="refresh" aria-label="날씨 새로 고침, ' + upd + '">' + I.ui('refresh', 15) + '<span class="num">' + upd + '</span></button></div>' +
       '<div class="hero-main"><h1 id="hero-t" class="hero-t"><span class="sr-only">' + esc(name) + ' · </span><span class="hero-temp num">' + r0(c.temperature_2m) + '°</span><span class="sr-only"> · </span>' +
       '<span class="hero-cond">' + esc(R.codeText(c.weather_code)) + '<span class="hero-feel">체감 <span class="num">' + r0(c.apparent_temperature) + '°</span></span></span></h1>' +
       I.sky(k, night) + '</div>' +
-      '<ul class="hero-chips">' + chips.map(function (x) { return '<li><span>' + x[0] + '</span><b class="num">' + x[1] + '</b></li>'; }).join('') + '</ul>' +
       stale + '</section>';
   }
 
@@ -245,24 +238,13 @@
       for (var h = 5; h <= 23; h++) o += '<option value="' + h + '"' + (h === sel ? ' selected' : '') + '>' + R.hourText(h) + '</option>';
       return '<select id="' + key + '" data-act="' + key + '" data-fk="' + key + '">' + o + '</select>';
     };
-    var w = C.w, j = C.j;
-    var facts = [
-      ['thermo', '체감', (r0(w.feelMin) === r0(w.feelMax) ? r0(w.feelMax) : r0(w.feelMin) + '~' + r0(w.feelMax)) + '°', false],
-      ['layer', '일교차', j.gap + '°', j.gap >= 8],
-      ['drop', '비', (w.rainMax == null ? '-' : w.rainMax + '%'), j.wet],
-      ['wind', '바람', (w.windMax == null ? '-' : w.windMax.toFixed(1) + 'm/s'), j.wind]
-    ];
-    var note = '';
-    if (S.day === 0 && C.past) note = '<p class="caption c3">오늘 외출 시간이 지나 하루 전체로 계산했어요.</p>';
-    else if (S.day === 0 && w.start > Math.min(S.win.start, S.win.end)) note = '<p class="caption c3">지난 시간은 빼고 ' + R.hourText(w.start) + '부터 계산했어요.</p>';
-    else if (S.dayAuto && S.day === 1 && today().nowHour >= Math.max(S.win.start, S.win.end) - 1) note = '<p class="caption c3">오늘 밖에 있을 시간이 거의 지나 내일 옷차림을 먼저 보여 드려요.</p>';
+    var autoNote = S.dayAuto && S.day === 1 && t.nowHour >= Math.max(S.win.start, S.win.end) - 1 ? '<p class="caption c3">오늘 밖에 있을 시간이 거의 지나 내일 옷차림을 먼저 보여 드려요.</p>' : '';
     return '<section class="card o2" aria-labelledby="plan-t"><h2 id="plan-t" class="sr-only">언제 밖에 있나요</h2>' +
       '<div class="day-tabs" role="tablist" aria-label="날짜">' + tabs.join('') + '</div>' +
       '<div class="win"><span class="win-l">밖에 있는 시간</span>' +
       '<label class="sel"><span class="sr-only">나가는 시간</span>' + hours(S.win.start, 'win-start') + I.ui('down', 16) + '</label><span class="c3" aria-hidden="true">~</span>' +
       '<label class="sel"><span class="sr-only">돌아오는 시간</span>' + hours(S.win.end, 'win-end') + I.ui('down', 16) + '</label></div>' +
-      '<ul class="facts">' + facts.map(function (f) { return '<li class="' + (f[3] ? 'hot' : '') + '">' + I.ui(f[0], 16) + '<span class="c3">' + f[1] + '</span><b class="num">' + esc(f[2]) + '</b></li>'; }).join('') + '</ul>' +
-      note + '</section>';
+      autoNote + '</section>';
   }
 
   function slotTile(slot, x, key, rangeLabel, empty) {
@@ -325,11 +307,22 @@
   }
 
   function howCard(how, C) {
+    var w = C.w, j = C.j;
+    var facts = [
+      ['thermo', '체감', (r0(w.feelMin) === r0(w.feelMax) ? r0(w.feelMax) : r0(w.feelMin) + '~' + r0(w.feelMax)) + '°', false],
+      ['layer', '일교차', j.gap + '°', j.gap >= 8],
+      ['drop', '비', (w.rainMax == null ? '-' : w.rainMax + '%'), j.wet],
+      ['wind', '바람', (w.windMax == null ? '-' : w.windMax.toFixed(1) + 'm/s'), j.wind]
+    ];
+    var note = '';
+    if (S.day === 0 && C.past) note = '<p class="caption c3">오늘 외출 시간이 지나 하루 전체로 계산했어요.</p>';
+    else if (S.day === 0 && w.start > Math.min(S.win.start, S.win.end)) note = '<p class="caption c3">지난 시간은 빼고 ' + R.hourText(w.start) + '부터 계산했어요.</p>';
     if (!how.length) how = [{ k: 'ok', t: '특별히 챙길 것 없는 날이에요. 위 옷차림 그대로 나가면 돼요' }];
     var ic = { layer: 'layer', gap: 'layer', warm: 'thermo', wind: 'wind', rain: 'drop', sun: 'sun', miss: 'info', ok: 'check' };
-    return '<section class="card o4" aria-labelledby="how-t"><h2 id="how-t" class="title3">이렇게 입어요</h2><ul class="how">' +
+    return '<section class="card o4" aria-labelledby="how-t"><h2 id="how-t" class="title3">이렇게 입어요</h2>' +
+      '<ul class="facts" aria-label="밖에 있는 동안 날씨">' + facts.map(function (f) { return '<li class="' + (f[3] ? 'hot' : '') + '">' + I.ui(f[0], 16) + '<span class="c3">' + f[1] + '</span><b class="num">' + esc(f[2]) + '</b></li>'; }).join('') + '</ul><ul class="how">' +
       how.map(function (x) { return '<li class="how-' + x.k + '">' + I.ui(ic[x.k] || 'info', 18) + '<span>' + esc(x.t) + '</span></li>'; }).join('') +
-      '</ul><p class="caption c3">상의·하의는 가장 따뜻할 때(체감 ' + r0(C.w.feelMax) + '℃), 겉옷은 가장 추울 때(체감 ' + r0(C.w.feelMin) + '℃) 기준이에요.</p></section>';
+      '</ul><p class="caption c3">상의·하의는 가장 따뜻할 때(체감 ' + r0(C.w.feelMax) + '℃), 겉옷은 가장 추울 때(체감 ' + r0(C.w.feelMin) + '℃) 기준이에요.</p>' + note + '</section>';
   }
 
   function hourCard(C) {
