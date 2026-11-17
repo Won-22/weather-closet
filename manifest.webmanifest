@@ -1,0 +1,11 @@
+{
+  "name": "옷장 예보",
+  "short_name": "옷장 예보",
+  "description": "밖에 있는 시간의 체감기온으로, 내 옷장 속 옷을 골라 입는 법까지 알려 줘요.",
+  "lang": "ko",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f7",
+  "theme_color": "#2f5fd0",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

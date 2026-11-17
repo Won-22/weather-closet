@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>옷장 예보 · 날씨에 맞춰 내 옷으로 코디</title>
+<meta name="description" content="밖에 있는 시간의 체감기온으로, 내 옷장 속 옷을 골라 입는 법까지 알려 주는 날씨 옷차림 앱. 로그인 없이 바로 써요.">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111317" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="옷장 예보">
+<meta property="og:description" content="밖에 있는 시간의 체감기온으로, 내 옷장 속 옷을 골라 입는 법까지 알려 줘요.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#app">본문으로 건너뛰기</a>
+<div id="app" tabindex="-1"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<dialog id="city-sheet" class="sheet" aria-labelledby="city-t">
+  <div class="sheet-in">
+    <div class="sheet-h"><h2 id="city-t" class="title3">도시 고르기</h2><button type="button" class="icon-btn" data-act="close" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-b"></div>
+    <p class="caption c3 sheet-note">도시 좌표는 앱 안에 들어 있어요. 고른 도시는 이 브라우저에만 저장돼요.</p>
+  </div>
+</dialog>
+
+<dialog id="item-sheet" class="sheet" aria-labelledby="item-t">
+  <form class="sheet-in" method="dialog" novalidate>
+    <div class="sheet-h"><h2 id="item-t" class="title3">옷 등록</h2><button type="button" class="icon-btn" data-act="close" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-b"></div>
+    <div class="sheet-f"><button type="submit" class="btn btn-primary wide" data-act="i-save">옷장에 넣기</button></div>
+  </form>
+</dialog>
+
+<noscript><p style="padding:24px">이 앱은 자바스크립트가 켜져 있어야 동작해요.</p></noscript>
+<script src="js/rules.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
