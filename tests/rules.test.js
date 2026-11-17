@@ -21,7 +21,7 @@ test('단계 범위를 기온 글로', () => {
   assert.equal(R.rangeText([2, 4]), '12~22℃');
   assert.equal(R.rangeText([0, 1]), '23℃ 이상');
   assert.equal(R.rangeText([6, 7]), '8℃ 이하');
-  assert.equal(R.rangeText([0, 7]), '언제나');
+  assert.equal(R.rangeText([0, 7]), '사계절');
 });
 
 test('두께에 따라 맞는 단계가 움직인다', () => {

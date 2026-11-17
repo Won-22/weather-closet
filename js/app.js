@@ -183,8 +183,8 @@
     var useOutfit = outfit && !outfit.miss ? outfit : null;
     var how = R.howTo(C.w, C.j, useOutfit, cards);
     return head + mockBanner() + '<main class="wrap grid">' +
-      '<div class="col-a">' + heroCard() + planCard(C) + hourCard(C) + '</div>' +
-      '<div class="col-b">' + outfitCard(C, mode, cards, outfit) + howCard(how, C) + (mineOk ? gapCard() : '') + bandsCard(C) + '</div>' +
+      '<div class="col-a">' + heroCard() + planCard(C) + aboutCard() + '</div>' +
+      '<div class="col-b">' + outfitCard(C, mode, cards, outfit) + howCard(how, C) + hourCard(C) + (mineOk ? gapCard() : '') + bandsCard(C) + '</div>' +
       '</main>' + footer();
   }
 
@@ -285,6 +285,15 @@
     }
     return '<section class="card outfit o3" aria-labelledby="of-t"><div class="card-h"><h2 id="of-t" class="title3">' + dl + '의 옷차림 <span class="c3 num title-sub">' + hh(C.w.start) + '~' + hh(C.w.end) + '</span></h2>' + seg + '</div>' +
       body + foot + '</section>';
+  }
+
+  /* PC 왼쪽 빈 곳: 어떻게 고르는지 3줄 (폰에서는 아래 8단계 표의 규칙으로 대신) */
+  function aboutCard() {
+    var L = [['clock', '밖에 있는 시간만 봐요', '하루 최고·최저 대신, 고른 시간의 1시간 단위 체감기온으로 판단해요.'],
+      ['layer', '낮 옷과 겉옷을 따로 골라요', '상의·하의는 가장 따뜻할 때, 겉옷은 가장 추울 때 기준이에요.'],
+      ['closet', '내 옷의 두께와 색까지', '기모·누빔은 더 추운 날로, 포인트 색은 한 벌만 들어가게 골라요.']];
+    return '<section class="card about" aria-labelledby="ab-t"><h2 id="ab-t" class="title3">옷장 예보는 이렇게 골라요</h2><ol class="about-l">' +
+      L.map(function (x) { return '<li>' + I.ui(x[0], 20) + '<div><p class="about-t">' + x[1] + '</p><p class="caption c2">' + x[2] + '</p></div></li>'; }).join('') + '</ol></section>';
   }
 
   function howCard(how, C) {
