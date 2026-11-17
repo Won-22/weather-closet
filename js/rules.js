@@ -333,7 +333,7 @@
     if (j.needOuter && outerName) {
       if (j.inner <= 2 && j.inner < j.outer) L.push({ k: 'layer', t: hourText(w.coldHour) + '쯤 체감 ' + Math.round(w.feelMin) + '℃엔 ' + josa(outerName, '을', '를') + ' 입고, ' + hourText(w.hotHour) + '쯤 ' + Math.round(w.feelMax) + '℃엔 벗어서 들어요' });
       else if (j.inner < j.outer) L.push({ k: 'layer', t: '아침·저녁(체감 ' + Math.round(w.feelMin) + '℃)이 낮(' + Math.round(w.feelMax) + '℃)보다 추워요. ' + (outfit ? josa(outerName, '은', '는') + ' 아침·저녁엔 여미고, 낮엔 앞을 열어 입어요' : josa(outerName, '은', '는') + ' 앞을 여닫기 쉬운 걸로 골라요') });
-      else L.push({ k: 'layer', t: '하루 종일 체감 ' + Math.round(w.feelMin) + '~' + Math.round(w.feelMax) + '℃라 ' + josa(outerName, '을', '를') + ' 계속 입어요' });
+      else L.push({ k: 'layer', t: '밖에 있는 동안 체감 ' + (Math.round(w.feelMin) === Math.round(w.feelMax) ? Math.round(w.feelMax) : Math.round(w.feelMin) + '~' + Math.round(w.feelMax)) + '℃라 ' + josa(outerName, '을', '를') + ' 계속 입어요' });
     }
     if (j.gap >= 8) L.push({ k: 'gap', t: '일교차 ' + j.gap + '℃ — 얇은 옷을 겹쳐 입으면 더울 때 하나씩 벗기 쉬워요' });
     if (j.inner >= 6) L.push({ k: 'warm', t: '상의 안에 히트텍 같은 얇은 내복을 겹치면 두꺼운 옷 한 벌보다 따뜻해요' });
