@@ -64,7 +64,7 @@
   function cityKey(c) { return c.lat.toFixed(2) + ',' + c.lon.toFixed(2); }
   function valid(d) { return d && d.hourly && d.daily && d.current && Array.isArray(d.hourly.time) && d.hourly.time.length >= 24; }
 
-  function loadWx(force) {
+  function loadWx(force, tries) {
     var c = S.city, key = cityKey(c);
     var cache = store.get('wx', null);
     if (!force && cache && cache.key === key && Date.now() - cache.at < CACHE_MIN * 6e4 && valid(cache.data)) {
@@ -85,12 +85,15 @@
       clearTimeout(tm);
       if (cityKey(S.city) !== key) return;
       if (cache && cache.key === key && valid(cache.data)) { S.wx = cache; S.wxState = 'stale'; S.mock = false; afterLoad(); return; }
+      /* 첫 연결이 느릴 때가 있어 한 번은 조용히 다시 */
+      if (!tries) { setTimeout(function () { if (cityKey(S.city) === key) loadWx(true, 1); }, 1200); return; }
       S.wx = null; S.wxState = 'fail'; render();
     });
   }
   function afterLoad() {
     var t = today();
-    if (S.dayAuto && t) S.day = (t.nowHour >= Math.max(S.win.start, S.win.end) ? 1 : 0);
+    /* 오늘 밖에 있을 시간이 2시간도 안 남았으면 내일 옷차림부터 */
+    if (S.dayAuto && t) S.day = (t.days > 1 && t.nowHour >= Math.max(S.win.start, S.win.end) - 1 ? 1 : 0);
     render();
   }
 
@@ -219,7 +222,7 @@
     };
     var w = C.w, j = C.j;
     var facts = [
-      ['thermo', '체감', r0(w.feelMin) + '~' + r0(w.feelMax) + '°', false],
+      ['thermo', '체감', (r0(w.feelMin) === r0(w.feelMax) ? r0(w.feelMax) : r0(w.feelMin) + '~' + r0(w.feelMax)) + '°', false],
       ['layer', '일교차', j.gap + '°', j.gap >= 8],
       ['drop', '비', (w.rainMax == null ? '-' : w.rainMax + '%'), j.wet],
       ['wind', '바람', (w.windMax == null ? '-' : w.windMax.toFixed(1) + 'm/s'), j.wind]
@@ -227,7 +230,7 @@
     var note = '';
     if (S.day === 0 && C.past) note = '<p class="caption c3">오늘 외출 시간이 지나 하루 전체로 계산했어요.</p>';
     else if (S.day === 0 && w.start > Math.min(S.win.start, S.win.end)) note = '<p class="caption c3">지난 시간은 빼고 ' + R.hourText(w.start) + '부터 계산했어요.</p>';
-    else if (S.dayAuto && S.day === 1 && today().nowHour >= Math.max(S.win.start, S.win.end)) note = '<p class="caption c3">오늘 외출 시간이 지나 내일 옷차림을 먼저 보여 드려요.</p>';
+    else if (S.dayAuto && S.day === 1 && today().nowHour >= Math.max(S.win.start, S.win.end) - 1) note = '<p class="caption c3">오늘 밖에 있을 시간이 거의 지나 내일 옷차림을 먼저 보여 드려요.</p>';
     return '<section class="card o2" aria-labelledby="plan-t"><h2 id="plan-t" class="sr-only">언제 밖에 있나요</h2>' +
       '<div class="day-tabs" role="tablist" aria-label="날짜">' + tabs.join('') + '</div>' +
       '<div class="win"><span class="win-l">밖에 있는 시간</span>' +
@@ -240,7 +243,7 @@
   function slotTile(slot, x, key, rangeLabel, empty) {
     var fill = empty ? 'transparent' : x.fill;
     return '<div class="tile' + (key ? ' key' : '') + (empty ? ' empty' : '') + '">' +
-      (key ? '<span class="key-badge">오늘 핵심</span>' : '') +
+      (key ? '<span class="key-badge">꼭 챙길 옷</span>' : '') +
       '<div class="tile-ic">' + I.cloth(x.icon, fill) + '</div>' +
       '<span class="tile-slot">' + esc(slot) + '</span><span class="tile-name">' + esc(x.name) + '</span>' +
       (rangeLabel ? '<span class="tile-r num">' + esc(rangeLabel) + '</span>' : '') + '</div>';
